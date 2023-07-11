@@ -1,2 +1,2 @@
-sample,short_fwd,short_rev,host
-CPL0106,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.fwd.fq.gz /lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.rev.fq.gz,/lustre/home/bt273/CPL/data/genomes/Acinetobacter-baumannii-NCTC13420.fasta
+sample,host_genus,given_name,short_fwd,short_rev,host,version
+CPL0106,Acinetobacter,LemonAid,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.fwd.fq.gz,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.rev.fq.gz,/lustre/home/bt273/CPL/data/genomes/Acinetobacter-baumannii-NCTC13420.fasta,1.0.0
