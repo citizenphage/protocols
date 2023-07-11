@@ -13,6 +13,7 @@ def get_reads(wildcards):
 
 rule all:
 	input:
+		expand("output/{phage}/fastqc-fwd.html", phage=samples.index)
 
 
 rule download_reads:
@@ -51,7 +52,7 @@ rule fastqc_reads:
 	log:
 		"../logs/{phage}/fastqc.log"
 	benchmark:
-	threads: 4
+	threads: 16
 	shell:
 		"""
 			mkdir -p scratch/{wildcards.phage}/fastqc-out
@@ -74,7 +75,7 @@ rule qc_reads:
 		rev=rules.download_reads.rev
 	output:
 		fwd="scratch/{phage}/fwd.qc.fq.gz",
-		rev="scratch/{phage}/rev.qc.fq.gz"
+		rev="scratch/{phage}/rev.qc.fq.gz",
 		merged="scratch/{phage}/merged.qc.fq.gz",
 		report="scratch/{phage}/qc-report.json"
 	conda:
