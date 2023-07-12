@@ -20,7 +20,6 @@ def get_title(wildcards):
 rule all:
 	input:
 		expand("output/{sample}/pharokka/mapped-reads.bam", sample=samples.index),
-		#expand("output/{sample}/pharokka/coverage.png", sample=samples.index),
 		expand("output/{sample}/pharokka/{sample}.gbk", sample=samples.index)
 
 rule download_reads:
@@ -261,7 +260,9 @@ rule reorientate_pharokka_output:
 		gff=rules.annotate_checkv_output.output
 	output:
 		gbk="output/{sample}/pharokka/{sample}.gbk",
-		genome_map="output/{sample}/pharokka/{sample}.png"
+		genome_map="output/{sample}/pharokka/{sample}.png",
+		genome="output/{sample}/pharokka/{sample}.fa",
+		inphared="output/{sample}/pharokka/closest-inphared-hit.tsv"
 	conda:
 		"../envs/pharokka.yml"
 	params:
@@ -302,6 +303,10 @@ rule reorientate_pharokka_output:
 		-t "{params.title}" 2>&1 | tee -a {log}
 
 		mv scratch/{wildcards.sample}/{wildcards.sample}.png {output.genome_map}
+		mv scratch/{wildcards.sample}/pharokka-rd2/{wildcards.sample}_genome_terminase_reoriented.fasta {output.genome}
+		mv scratch/{wildcards.sample}/pharokka-rd2/{wildcards.sample}_top_hits_mash_inphared.tsv {output.inphared}
+
+
 
 
 		"""
@@ -352,12 +357,14 @@ rule map_reads_against_assembly:
 
 rule plot_coverage:
 	input:
-		rules.map_reads_against_assembly.output.mapped
+		bam=rules.map_reads_against_assembly.output.mapped,
+		genome=rules.extract_fasta_from_genbank.output
 	output:
 		"output/{sample}/pharokka/coverage.png"
 	shell:
 		"""
 		python scripts/plot_genome_coverage.py \
-		--bam {input} \
-		--plot {output}
+		--bam {input.bam} \
+		--prefix output/{wildcards.sample}/pharokka/coverage \
+		--genome {input.genome} \
 		"""
