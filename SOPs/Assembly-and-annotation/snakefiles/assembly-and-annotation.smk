@@ -24,8 +24,8 @@ rule all:
 
 rule download_reads:
 	output:
-		fwd=temp("scratch/{sample}/fwd.fq.gz"),
-		rev=temp("scratch/{sample}/rev.fq.gz")
+		fwd="scratch/{sample}/fwd.fq.gz",
+		rev="scratch/{sample}/rev.fq.gz"
 	params:
 		fwd=get_fwd_reads,
 		rev=get_rev_reads
@@ -164,7 +164,7 @@ rule assemble_reads:
 		rev=rules.map_reads_against_host.output.unmapped_rev
 	output:
 		contigs="output/{sample}/assembly/contigs.fa.gz",
-		graph="output/{sample}/assembly/contigs.gfa.gz"
+		graph="output/{sample}/assembly/{sample}-contigs.gfa.gz"
 	conda:
 		"../envs/assembly.yml"
 	log: "logs/{sample}/assembly.log"

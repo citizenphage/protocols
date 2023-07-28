@@ -1,5 +1,9 @@
 sample,host_genus,given_name,short_fwd,short_rev,host,version
-#CPL0106,Acinetobacter,LemonAid,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.fwd.fq.gz,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.rev.fq.gz,/lustre/home/bt273/CPL/data/genomes/Acinetobacter-baumannii-NCTC13420.fasta,1.0.0
-CPL0272,Pseudomonas,PipetteDweller,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P272_S58_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P272_S58_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna
-CPL0278,Pseudomonas,Razaek,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P278_S64_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P278_S64_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna
-CPL0283,Pseudomonas,HairyPottery,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P283_S69_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P283_S69_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna
+CPL0106,Acinetobacter,LemonAid,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.fwd.fq.gz,/lustre/home/bt273/CPL/data/reads/2021-10-25/P106_AB13420_4.rev.fq.gz,/lustre/home/bt273/CPL/data/genomes/Acinetobacter-baumannii-NCTC13420.fasta,1.0.0
+CPL0272,Pseudomonas,PipetteDweller,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P272_S58_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P272_S58_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna,1.0.0
+CPL0278,Pseudomonas,Razaek,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P278_S64_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P278_S64_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna,1.0.0
+CPL0283,Pseudomonas,HairyPottery,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P283_S69_R1_001.fastq.gz,/lustre/home/bt273/CPL/data/reads/2022-08-01/Project_10742/V0257/01_raw_reads/10742_P283_S69_R2_001.fastq.gz,/lustre/home/bt273/CPL/data/genomes/Ps_aeurginosa_PAO1.fna,1.0.0
+#CPL00362,Klebsiella,Bobalons,,,,
+CPL00368,Klebsiella,DevonBitter,,,,1.0.0
+CPL00369,Klebsiella,ExeTerminator,,,,1.0.0
+CPL00379,Klebsiella,StarXobjector,,,,1.0.0

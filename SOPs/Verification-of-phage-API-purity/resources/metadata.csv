@@ -1,0 +1,5 @@
+sample,fwd_reads,rev_reads,host_genome,phage_gbk
+CPL00362,scratch/10961_P362_S3_R1_001_fastp.fastq.gz,scratch/10961_P362_S3_R2_001_fastp.fastq.gz,scratch/Klebsiella-pneumoniae-272.fa,,
+CPL00368,scratch/10961_P368_S4_R1_001_fastp.fastq.gz,scratch/10961_P368_S4_R2_001_fastp.fastq.gz,scratch/Klebsiella-pneumoniae-272.fa,,
+CPL00369,scratch/10961_P369_S5_R1_001_fastp.fastq.gz,scratch/10961_P369_S5_R2_001_fastp.fastq.gz,scratch/Klebsiella-pneumoniae-272.fa,,
+CPL00379,scratch/10961_P379_S6_R1_001_fastp.fastq.gz,scratch/10961_P379_S6_R2_001_fastp.fastq.gz,scratch/Klebsiella-pneumoniae-272.fa,,
