@@ -26,7 +26,8 @@ rule all:
         expand("output/{sample}/assembly/unmapped-contigs.fa.gz", sample=samples.index),
         expand("output/{sample}/assembly/non-phage-contigs.fa.gz",sample=samples.index),
         expand("output/{sample}/assembly/{sample}-non-phage-host-mapping.bam", sample=samples.index),
-        expand("output/{sample}/mapping/{sample}-coverage.json", sample=samples.index)
+        expand("output/{sample}/mapping/{sample}-coverage.json", sample=samples.index),
+        expand("output/{sample}/assembly/checkv-summary-non-phage-contigs.tsv", sample=samples.index)
 
 
 
@@ -201,6 +202,8 @@ rule assemble_unmapped_reads:
     conda:
         "../envs/assembly.yml"
     log: "logs/{sample}/unmapped-assembly.log"
+    params:
+        min_length=3000
     threads: 16
     shell:
         """
@@ -242,10 +245,39 @@ rule assemble_non_phage_reads:
             --meta \
             -o scratch/{wildcards.sample}/non-phage-spades 2>&1 | tee {log}
 
+
+
             pigz -c scratch/{wildcards.sample}/non-phage-spades/contigs.fasta > {output.contigs}
             pigz -c scratch/{wildcards.sample}/non-phage-spades/assembly_graph.fastg > {output.graph}
 
             rm -rf scratch/{wildcards.sample}/non-phage-spades
+        """
+
+rule check_assembled_contigs_for_prophage:
+    input:
+        rules.assemble_unmapped_reads.output.contigs,
+    output:
+        quality="output/{sample}/assembly/checkv-summary-non-phage-contigs.tsv",
+        contigs="output/{sample}/assembly/checkv-summary-non-phage-viral-contigs.fa"
+    conda:
+        "../envs/checkv.yml"
+    log: "logs/{sample}/non-phage-assembly-checkv.log"
+    params:
+        checkv_db="/home/artic/bens_toys/dbs/checkv-db-v1.1"
+    threads: 16
+    shell:
+        """
+            checkv end_to_end \
+            {input} \
+            scratch/{wildcards.sample}/checkv \
+            -t {threads} \
+            -d {params.checkv_db}
+
+            cp scratch/{wildcards.sample}/checkv/quality_summary.tsv {output.quality}
+            cp scratch/{wildcards.sample}/checkv/viruses.fna {output.contigs}
+
+            rm -rf scratch/{wildcards.sample}/checkv
+            
         """
 
 rule map_non_phage_assembly:
@@ -271,6 +303,7 @@ rule map_non_phage_assembly:
             rm scratch/{wildcards.sample}/non_phage_assembly.sam
 
         """
+
 
 rule evaluate_coverage:
     input:

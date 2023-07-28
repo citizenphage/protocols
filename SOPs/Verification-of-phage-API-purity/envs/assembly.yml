@@ -1,4 +1,4 @@
-name: shovill
+name: /home/artic/bens_toys/cpl/protocols/SOPs/Verification-of-phage-API-purity/.snakemake/conda/371251d407f8b5aabadc496534c5eb8a_
 channels:
   - conda-forge
   - defaults
@@ -115,4 +115,6 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h166bdaf_1014
   - zstd=1.5.2=ha95c52a_0
-prefix: /home/artic/miniconda3/envs/shovill
+  - pip:
+    - biopython==1.81
+prefix: /home/artic/bens_toys/cpl/protocols/SOPs/Verification-of-phage-API-purity/.snakemake/conda/371251d407f8b5aabadc496534c5eb8a_
