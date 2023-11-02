@@ -1,6 +1,7 @@
 Opentrons protocols used by the CPL for automating analyses.
 
 Pipeline overview:
+
 <img width="805" alt="image" src="https://github.com/citizenphage/protocols/assets/101196413/dec80adc-7fe6-4ba2-8fb6-515e7cad8854">
 
 Our pipeline offers both a semi-solid and a liquid-based approach to phage isolation:
