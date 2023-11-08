@@ -18,7 +18,7 @@ These protocols contain values for the user to change, found near the top of the
 
 Once these variables are defined, we suggest saving the protocol with a name that allows run tracibility. You may wish to include the date or daycode, the protocol ID, and the run number (protocol can be used more than once in a day). Example file name: "230821_CPL1_RUN1.py".
 
-The growth media used in these protocols is LB broth. For encouraging phage proliferation, 1mM MgCl2 and 1mM CaCl2 should be added to this broth.
+The growth media used in these protocols is LB broth. For encouraging phage proliferation, 10mM MgCl2 and 1mM CaCl2 should be added to this broth.
 
 ## The robot:
 The Opentrons OT-2 liquid handling robot contains 11 deck slots and a tip bin.
