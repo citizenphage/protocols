@@ -4,7 +4,7 @@ from opentrons import protocol_api
 metadata = {
     'protocolName': 'CPL protocol 3: First phage enrichment ',
     'author': 'Jacob Sturgess',
-    'description': 'Adds 75ul host culture and 400ul growth media (4.4xLB + 0.25mM MgCl2 & CaCl2) with 1ml pools of filter-sterilised samples. Note: the samples may instead be added later.).',
+    'description': 'Adds 75ul host culture and 400ul growth media (4.4xLB + 0.25mM MgCl2 & CaCl2) with 1ml pools of filter-sterilised samples. Note: the samples may instead be added later.',
     'apiLevel': '2.9'
 }
 
@@ -30,8 +30,13 @@ def run(ctx):
     p1000 = ctx.load_instrument('p1000_single_gen2', 'right', tip_racks=[p1000tiprack])
     p300 = ctx.load_instrument('p300_single_gen2', 'left', tip_racks=[p300tiprack])
 
+    # Convert host volumes from ml to ul
+    lb_volume, host_volume = start_lb_volume * 1000, start_host_volume * 1000 
+
     # Checks
-    # Check sufficient volumes, number of wells...
+    if wells_for_reagents:
+        if host_volume < wells_for_reagents*75 or lb_volume < wells_for_reagents*400:
+            ctx.pause("Please ammend user defined variables. You may not have sufficient reagents.")
 
     # Confirm user defined variables
     ctx.pause(f"""Please confirm the user defined variables:
@@ -48,8 +53,6 @@ def run(ctx):
 
     # Set pipettes to dispense near the top of the deep well (35mm from base) to avoid liquid splashing the tip
     p1000.well_bottom_clearance.dispense, p300.well_bottom_clearance.dispense = 35, 35
-    # Convert host volumes from ml to ul
-    lb_volume, host_volume = start_lb_volume * 1000, start_host_volume * 1000 
 
     # Set source and destinations for distributing LB
     p1000.pick_up_tip()
