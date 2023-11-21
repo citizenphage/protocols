@@ -1,4 +1,4 @@
-# Opentrons protocols used by the CPL for automating analyses.
+# Opentrons protocols used by the CPL for automating phage isolation
 
 ## Pipeline overview:
 
