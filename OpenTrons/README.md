@@ -22,6 +22,7 @@ The growth media used in these protocols is LB broth. For encouraging phage prol
 
 ## The robot:
 The Opentrons OT-2 liquid handling robot contains 11 deck slots and a tip bin.
+
 <img width="420" alt="image" src="https://github.com/citizenphage/protocols/assets/101196413/3fc713e7-10bf-40cd-b9a3-a582a0227860">
 
 It is important to regularly calibrate the robot for it to move and interact with labware accurately.
