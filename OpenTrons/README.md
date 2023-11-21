@@ -4,7 +4,7 @@
 
 <img width="790" alt="image" src="https://github.com/citizenphage/protocols/assets/101196413/dec80adc-7fe6-4ba2-8fb6-515e7cad8854">
 
-Our pipeline offers both a semi-solid and a liquid-based approach to phage isolation:
+Within this pipeline, we offer both a semi-solid and a liquid-based approach to phage isolation:
 <img width="790" alt="image" src="https://github.com/citizenphage/protocols/assets/101196413/aa0b176f-016a-4beb-a957-e1dd94107d12">
 <img width="790" alt="image" src="https://github.com/citizenphage/protocols/assets/101196413/7b5ea0d4-2298-4456-b375-898331ce45f3">
 
