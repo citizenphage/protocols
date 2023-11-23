@@ -4,7 +4,7 @@ from opentrons import protocol_api
 metadata = {
     'protocolName': 'CPL protocol 5: Second phage enrichment.',
     'author': 'Jacob Sturgess',
-    'description': 'Adds 10ul host culture and 190ul growth media (LB + 0.25mM MgCl2 & CaCl2)to microplate. Then adds 5ul of filtered first enrichment. (Note: Each stage may be done independently.)',
+    'description': 'Adds 10ul host culture and 190ul growth media (LB + 0.25mM MgCl2 & CaCl2)to microplate. Then adds 10ul of filtered first enrichment. (Note: Each stage may be done independently.)',
     'apiLevel': '2.9'
 }
 
@@ -142,7 +142,7 @@ def run(ctx):
             LB volume went from {start_lb_volume*1000}ul to {lb_volume}ul.
             Host culture volume went from {start_host_volume*1000}ul to {host_volume}ul.""")
 
-    # Transfer 5ul of each first filtrate to the fresh microplate, if indicated by the user
+    # Transfer 10ul of each first filtrate to the fresh microplate, if indicated by the user
     if filtrate_wells_to_transfer > 0:
         filtrate_wells = prepare_plate(first_filtrate, 96)
         p20.well_bottom_clearance.aspirate = 1
