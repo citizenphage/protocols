@@ -1,4 +1,4 @@
-name: shovill
+name: /home/artic/bens_toys/cpl/protocols/SOPs/Assembly-and-annotation/.snakemake/conda/7cb4e3072d8e6f0f7f95fa415cefd47c_
 channels:
   - conda-forge
   - defaults
@@ -8,12 +8,13 @@ dependencies:
   - _openmp_mutex=4.5=1_gnu
   - _sysroot_linux-64_curr_repodata_hack=3=h5bd9786_13
   - alsa-lib=1.2.3=h516909a_0
+  - blast=2.5.0=hc0b0e79_3
   - boost=1.70.0=py38h9de70de_1
   - boost-cpp=1.70.0=ha2d47e9_1
   - bwa=0.7.17=h7132678_9
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2021.10.8=ha878542_0
+  - ca-certificates=2023.7.22=hbcca054_0
   - cairo=1.16.0=h18b612c_1001
   - expat=2.4.8=h27087fc_0
   - flash=1.2.11=h5bf99c6_6
@@ -65,6 +66,7 @@ dependencies:
   - llvm-openmp=8.0.1=hc9558a2_0
   - lz4-c=1.9.3=h9c3ff4c_1
   - megahit=1.2.9=h2e03b76_1
+  - miniasm=0.3_r179=h7132678_3
   - ncurses=6.3=h9c3ff4c_0
   - numpy=1.22.3=py38h05e7239_0
   - openjdk=11.0.9.1=h5cc2fde_1
@@ -81,6 +83,7 @@ dependencies:
   - pthread-stubs=0.4=h36c2ea0_1001
   - python=3.8.13=h582c2e5_0_cpython
   - python_abi=3.8=2_cp38
+  - racon=1.5.0=h7ff8a90_0
   - readline=8.1=h46c0cb4_0
   - samclip=0.4.0=hdfd78af_1
   - samtools=1.15=h1170115_1
@@ -93,6 +96,7 @@ dependencies:
   - sysroot_linux-64=2.17=h4a8ded7_13
   - tk=8.6.12=h27826a3_0
   - trimmomatic=0.39=hdfd78af_2
+  - unicycler=0.5.0=py38h3b68952_1
   - velvet=1.2.10=h7132678_5
   - wheel=0.37.1=pyhd8ed1ab_0
   - xorg-fixesproto=5.0=h7f98852_1002
@@ -115,4 +119,6 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h166bdaf_1014
   - zstd=1.5.2=ha95c52a_0
-prefix: /home/artic/miniconda3/envs/shovill
+  - pip:
+    - biopython==1.81
+prefix: /home/artic/bens_toys/cpl/protocols/SOPs/Assembly-and-annotation/.snakemake/conda/7cb4e3072d8e6f0f7f95fa415cefd47c_

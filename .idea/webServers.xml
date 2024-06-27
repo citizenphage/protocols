@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="919e20e9-7c44-4b92-b210-4f0c1e3555a7" name="TheRock">
+        <fileTransfer rootFolder="/media/ben/eb2bfd7c-b1ec-4a81-b90b-3fe588646dea/CPL/" accessType="SFTP" host="144.173.27.144" port="22" sshConfigId="e3c9b77c-1751-45b8-9468-9d27a4e6cd08" sshConfig="ben@144.173.27.144:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" isUseRsync="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

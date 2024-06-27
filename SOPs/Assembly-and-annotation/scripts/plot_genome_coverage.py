@@ -4,6 +4,7 @@ import argparse
 from Bio import SeqIO
 import seaborn as sns
 import numpy as np
+import json
 
 def parse_args():
     # Create argument parser
@@ -14,6 +15,7 @@ def parse_args():
     parser.add_argument("--prefix", type=str, required=True)
     parser.add_argument("--genome", type=str, required=True)
     parser.add_argument("--window_size", type=int, default=1000)
+    parser.add_argument("--json", type=str, required=True)
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -39,6 +41,8 @@ def plot_genome_coverage(genome, bam_file, prefix, window_size):
         # Calculate the total coverage across all positions
         sliding_window_coverage = calculate_sliding_window_coverage(coverage[0], window_size)
 
+        total_coverage = np.mean(sliding_window_coverage)
+
         # Generate the x-axis positions for plotting
         positions = list(range(1, len(sliding_window_coverage) + 1))
 
@@ -51,7 +55,7 @@ def plot_genome_coverage(genome, bam_file, prefix, window_size):
         # Format the plot
         plt.xlabel("Locus", fontsize=12)
         plt.ylabel("Coverage", fontsize=12)
-        plt.title(f"Genome Coverage (Sliding Window Size = {window_size})", fontsize=14)
+        plt.title(f"Genome Coverage (total = {total_coverage:.1f}x)", fontsize=14)
         plt.xticks(fontsize=10)
         plt.yticks(fontsize=10)
         plt.tight_layout()
@@ -61,6 +65,9 @@ def plot_genome_coverage(genome, bam_file, prefix, window_size):
 
         # Display a confirmation message
         print(f"Genome coverage plot saved as {prefix}-{c}.png")
+
+        with open(args.json, 'w') as handle:
+            json.dump({'coverage': f'{total_coverage:.1f}'}, handle)
 
 def main(args):
     plot_genome_coverage(args.genome, args.bam, args.prefix, args.window_size)

@@ -1,0 +1,115 @@
+{
+	"UUID" : "",
+	"version": "1.0.0",
+	"name": {
+		"full_name" : "",
+		"short_name" : ""
+	},
+	"source" : {
+		"isolation_host" : {
+			"name": "",
+			"genbank_url": "",
+			"isolated_by" : "",
+			"isolated_from" : ""
+		},
+		"provided_by" : "Oxford Silk Phage Technologies"
+	},
+	"genome" : {
+		"propagation_host": {
+			"name": "",
+			"genbank_url": ""
+		},
+		"sequencing": {
+			"date_sequenced": "2024-06-18",
+			"sequencing_center": "University of Exeter",
+			"sequencing_type": "Illumina 2 x 250 bp",
+			"number_of_reads": 0,
+			"total_bp": 0,
+			"reads": {
+					"read_url": [],
+					"read_qc_url": ""
+				},
+			"host_removal" : {
+				"host_genome" : "Staphylococcus aureus subsp. aureus RN4220",
+				"genome_url" : "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP1/01_reads/host-mapping/host.fa",
+				"mapped_reads" : 0,
+				"unmapped_reads": 0,
+				"pct_mapped_reads": 0,
+				"mapped_reads_bam_url" : "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/01_reads/host-mapping/host-mapped-reads.bam"
+			}
+		},
+		"assembly": {
+			"assembler": "unicycler",
+			"assembler_version": "0.5.0",
+			"command": "unicycler -1 {input.fwd} -2 {input.rev} -s {input.merged} --min_fasta_length 10000 --threads {threads} --start_genes resources/terL.fa --out scratch/{wildcards.sample}/unicycler-subsample",
+			"subsampled_coverage": "500",
+			"subsampled_method": {
+				"program_name": "shovill",
+				"program_version": "1.1.0",
+				"command": "shovill --R1 {input.fwd} --R2 {input.rev} --outdir scratch/{wildcards.sample}/shovill --minlen 10000 --depth 500 --mincov 20 --keepfiles --cpus {threads} --force --noreadcorr"
+			},
+			"contig_lengths": [0],
+			"contigs_url": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/02_assembly/unicycler/unicycler-subsampled-contigs.fa",
+			"assembly_graph_url": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/output/SAP2/02_assembly/host-mapped-reads/unicycler-host-mapped.gfa.gz",
+			"manually_curated_assembly": "no",
+			"manually_curation_method": ""
+		},
+		"checkv": {
+			"version": "1.0.1",
+			"command": "checkv end_to_end {input.assembly} scratch/{wildcards.sample}/shovill-checkv -t {threads} -d {input.db}/checkv-db-v* --remove_tmp",
+			"contigs": [{
+				"name": "",
+				"quality": "",
+				"estimated_completeness" : 0
+			}]
+		},
+		"annotation": [
+			{
+				"selected_contig_name": "",
+				"selected_contig_length": 0,
+				"program_used": "pharokka + phold",
+				"program_version": "1.7.1",
+				"command": "pharokka.py -i {input.contigs} -o scratch/{wildcards.sample}/pharokka-unicycler -d {input.db} -t {threads} -l {wildcards.sample} -g prodigal --force --dnaapler --prefix {wildcards.sample}",
+				"genbank_url": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/03_annotation/SAP2-phold.gbk",
+				"plot_url": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/03_annotation/SAP2-phold.png",
+				"lifestyle": "virulent",
+				"lifestyle_method": {
+					"program_name": "PhageLeads",
+					"program_version": "https://doi.org/10.3390/v14020342",
+					"command": "https://phageleads.ku.dk/"
+				},
+				"genes_of_concern": [],
+				"genes_of_concern_method": {
+					"program_name": "PhageLeads",
+					"program_version": "https://doi.org/10.3390/v14020342",
+					"command": "https://phageleads.ku.dk/"
+				},
+				"genome_coverage": {
+					"assembly_average_coverage": 0,
+					"assembly_bam_file": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/03_annotation/assembly-mapped-reads.bam",
+					"assembly_coverage_plot_file": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/03_annotation/coverage-SAP2.png"
+				},
+				"variants": {
+					"full_read_bam_file": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/04_variants/SAP2-snps.bam",
+					"program_name": "snippy",
+					"program_version": "4.6.0",
+					"command": "snippy --cpus 16",
+					"snp_table": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store/SAP2/04_variants/SAP2-snps.html"
+				},
+				"phylogeny": {
+					"closest_match": {
+						"name": "",
+						"accession_number": "",
+						"estimated_distance": 0,
+						"estimated_distance_method": "mash",
+						"database_name": "inphared",
+						"taxonomy": "",
+						"program_name": "pharokka",
+						"program_version": "1.7.1",
+						"database_version": "1Aug2023"
+					}
+				}
+			}]
+
+	}
+}
