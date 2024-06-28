@@ -17,7 +17,7 @@ def get_rev_reads(wildcards):
 
 def get_host(wildcards):
     row = samples.loc[wildcards.sample]
-    return f'{row.host}'
+    return f'{row.host_fasta}'
 
 def get_title(wildcards):
 	row = samples.loc[wildcards.sample]
@@ -43,18 +43,22 @@ def get_sequencing_type(wildcards):
 
 rule all:
 	input:
+		expand("output/reads/{sample}/orig_reads/{sample}-fwd.qc.fq.gz", sample=samples.index),
+		expand("output/reads/{sample}/orig_reads/{sample}-rev.qc.fq.gz", sample=samples.index),
+		expand("output/{sample}/01_reads/host-mapping/host.fa", sample=samples.index),
 		expand("output/{sample}/01_reads/orig_reads/stats.json", sample=samples.index),
 		expand("output/{sample}/01_reads/orig_reads/qc-report.tgz", sample=samples.index),
 		expand("output/{sample}/01_reads/host-mapping/host_mapping.json", sample=samples.index),
-		expand("output/{sample}/02_assembly/unicycler/unicycler-subsampled-contigs-report.json", sample=samples.index),
-		expand("output/{sample}/02_assembly/unicycler/checkv/process-files-report.json", sample=samples.index)
+		expand("output/{sample}/02_assembly/unicycler/shovill-reads/{sample}-shovill-bandage.png", sample=samples.index),
+		expand("output/{sample}/02_assembly/unicycler/1pc/{sample}-1pc-bandage.png", sample=samples.index),
+		expand("output/reports/{sample}/assembly-report.json", sample=samples.index)
 
 
 
 rule download_reads:
 	output:
-		fwd=temp("scratch/{sample}/fwd.fq.gz"),
-		rev=temp("scratch/{sample}/rev.fq.gz")
+		fwd=temp("scratch/{sample}/all-fwd.fq.gz"),
+		rev=temp("scratch/{sample}/all-rev.fq.gz")
 	params:
 		fwd=get_fwd_reads,
 		rev=get_rev_reads,
@@ -99,8 +103,8 @@ rule fastqc_reads:
 			{input.fwd} \
 			{input.rev} 2>&1 | tee {log}
 
-			mv scratch/{wildcards.sample}/fastqc-out/fwd_fastqc.html {output.fwd}
-			mv scratch/{wildcards.sample}/fastqc-out/rev_fastqc.html {output.rev}
+			mv scratch/{wildcards.sample}/fastqc-out/all-fwd_fastqc.html {output.fwd}
+			mv scratch/{wildcards.sample}/fastqc-out/all-rev_fastqc.html {output.rev}
 
 			rm -rf scratch/{wildcards.sample}/fastqc-out
 		"""
@@ -241,6 +245,71 @@ rule parse_mapped_reads:
 			--output {output}
 		"""
 
+
+rule subsample_reads:
+	input:
+		fwd=rules.map_reads_against_host.output.unmapped_fwd,
+		rev=rules.map_reads_against_host.output.unmapped_rev
+	output:
+		sub_fwd = "scratch/{sample}/1pc/fwd.fq.gz",
+		sub_rev = "scratch/{sample}/1pc/rev.fq.gz"
+	conda:
+		"../envs/assembly.yml"
+	shell:
+		"""
+			seqtk sample {input.fwd} 0.01  | pigz --fast -c -p 16 > {output.sub_fwd}
+			seqtk sample {input.rev} 0.01  | pigz --fast -c -p 16 > {output.sub_rev}
+		"""
+
+rule assemble_subsample:
+	input:
+		fwd= "scratch/{sample}/1pc/fwd.fq.gz",
+		rev="scratch/{sample}/1pc/rev.fq.gz"
+	output:
+		contigs = "output/{sample}/02_assembly/unicycler/1pc/contigs.fa",
+		report="output/{sample}/02_assembly/unicycler/1pc/report.json",
+		graph = "output/{sample}/02_assembly/unicycler/1pc/bandage.gfa.gz"
+	conda:
+		"../envs/unicycler.yml"
+	threads: 16
+	shell:
+		"""
+		unicycler \
+		-1 {input.fwd} \
+		-2 {input.rev} \
+		--min_fasta_length 1000 \
+		--threads {threads} \
+		--out scratch/{wildcards.sample}/unicycler/1pc/
+	
+		python scripts/rename_contigs.py \
+		--input scratch/{wildcards.sample}/unicycler/1pc/assembly.fasta \
+		--outfile scratch/{wildcards.sample}/unicycler/1pc/renamed.fa \
+		--report {output.report} \
+		--prefix {wildcards.sample}-1pc \
+		--assembly_method unicycler-1pc
+	
+		cp scratch/{wildcards.sample}/unicycler/1pc/renamed.fa {output.contigs}
+		pigz -c scratch/{wildcards.sample}/unicycler/1pc/assembly.gfa > {output.graph}
+	
+	
+		"""
+
+rule visualise_subsample_assembly:
+	input:
+		graph=rules.assemble_subsample.output.graph
+	output:
+		img="output/{sample}/02_assembly/unicycler/1pc/{sample}-1pc-bandage.png"
+	conda:
+		"../envs/bandage.yml"
+	shell:
+		"""
+			unpigz -c {input.graph} > scratch/{wildcards.sample}/unicycler/1pc/bandage.gfa
+			Bandage image scratch/{wildcards.sample}/unicycler/1pc/bandage.gfa {output.img}
+			rm scratch/{wildcards.sample}/unicycler/1pc/bandage.gfa
+
+		"""
+
+
 rule assemble_reads_with_shovill:
 	input:
 		fwd=rules.map_reads_against_host.output.unmapped_fwd,
@@ -295,9 +364,9 @@ rule reassemble_shovill_reads_with_unicycler:
 		rev=rules.assemble_reads_with_shovill.output.sub_rev,
 		merged=rules.assemble_reads_with_shovill.output.sub_merged
 	output:
-		contigs="output/{sample}/02_assembly/unicycler/unicycler-subsampled-contigs.fa",
-		report ="output/{sample}/02_assembly/unicycler/unicycler-subsampled-contigs-report.json",
-		graph="output/{sample}/02_assembly/unicycler/{sample}-unicycler-subsample.gfa.gz"
+		contigs="output/{sample}/02_assembly/unicycler/shovill-reads/contigs.fa",
+		report ="output/{sample}/02_assembly/unicycler/shovill-reads/report.json",
+		graph="output/{sample}/02_assembly/unicycler/shovill-reads/bandage.gfa.gz"
 	conda:
 		"../envs/unicycler.yml"
 	log: "logs/{sample}/unicycler-subsample-assembly.log"
@@ -308,7 +377,7 @@ rule reassemble_shovill_reads_with_unicycler:
 		-1 {input.fwd} \
 		-2 {input.rev} \
 		-s {input.merged} \
-		--min_fasta_length 10000 \
+		--min_fasta_length 1000 \
 		--threads {threads} \
 		--out scratch/{wildcards.sample}/unicycler-subsample 2>&1 | tee {log}
 
@@ -317,7 +386,7 @@ rule reassemble_shovill_reads_with_unicycler:
 		--outfile scratch/{wildcards.sample}/unicycler-subsample/renamed.fa \
 		--report {output.report} \
 		--prefix {wildcards.sample} \
-		--assembly_method unicycler-subsample
+		--assembly_method unicycler-shovill-reads
 
 		cp scratch/{wildcards.sample}/unicycler-subsample/renamed.fa {output.contigs}
 		pigz -c scratch/{wildcards.sample}/unicycler-subsample/assembly.gfa > {output.graph}
@@ -325,51 +394,44 @@ rule reassemble_shovill_reads_with_unicycler:
 
 		"""
 
-rule setup_checkv:
-	output:
-		directory("scratch/checkv-db")
-	conda: "../envs/checkv.yml"
-	log: "logs/setup-checkv.log"
-	shell:
-		"""
-		checkv download_database {output} 2>&1 | tee {log}
-		"""
-
-rule run_checkv_on_unicycler:
+rule visualise_unicycler_assembly:
 	input:
-		assembly=rules.reassemble_shovill_reads_with_unicycler.output.contigs,
-		db=rules.setup_checkv.output
+		graph=rules.reassemble_shovill_reads_with_unicycler.output.graph
 	output:
-		viruses="scratch/{sample}/02_assembly/unicycler/checkv/viruses.fna",
-		quality_summary="scratch/{sample}/02_assembly/unicycler/checkv/quality_summary.tsv"
+		img="output/{sample}/02_assembly/unicycler/shovill-reads/{sample}-shovill-bandage.png"
 	conda:
-		"../envs/checkv.yml"
-	threads: 16
-	log: "logs/{sample}/checkv.log"
+		"../envs/bandage.yml"
 	shell:
 		"""
-		checkv end_to_end {input.assembly} \
-		scratch/{wildcards.sample}/checkv \
-		-t {threads} \
-		-d {input.db}/checkv-db-v* \
-		--remove_tmp 2>&1 | tee {log}
-
-		mv scratch/{wildcards.sample}/checkv/quality_summary.tsv {output.quality_summary}
-		mv scratch/{wildcards.sample}/checkv/viruses.fna {output.viruses}
+			unpigz -c {input.graph} > scratch/{wildcards.sample}/unicycler-subsample/bandage.gfa
+			Bandage image scratch/{wildcards.sample}/unicycler-subsample/bandage.gfa {output.img}
+			rm scratch/{wildcards.sample}/unicycler-subsample/bandage.gfa
+			
+			mkdir -p output/{wildcards.sample}/03_selected_contigs/
+			
 		"""
 
-rule process_checkv_output:
+
+rule generate_assembly_report_json:
 	input:
-		viruses=rules.run_checkv_on_unicycler.output.viruses,
-		quality_summary=rules.run_checkv_on_unicycler.output.quality_summary
+		qc_report="output/{sample}/01_reads/orig_reads/stats.json",
+		mapping_report="output/{sample}/01_reads/host-mapping/host_mapping.json",
+		shovill_report="output/{sample}/02_assembly/shovill/shovill-subsampled-contigs-report.json",
+		unicycler_report="output/{sample}/02_assembly/unicycler/shovill-reads/report.json",
+		onepct_report="output/{sample}/02_assembly/unicycler/1pc/report.json"
 	output:
-		report="output/{sample}/02_assembly/unicycler/checkv/process-files-report.json",
-		store=directory("output/{sample}/02_assembly/unicycler/checkv/contig-store")
+		"output/reports/{sample}/assembly-report.json"
+	params:
+		config='resources/config.json'
 	shell:
 		"""
-			python scripts/parse_checkv.py \
-			--viruses {input.viruses} \
-			--quality {input.quality_summary} \
-			--output {output.report} \
-			--contig_store {output.store}
+		python scripts/generate_assembly_report.py \
+		--output {output} \
+		--config {params.config} \
+		--sample {wildcards.sample} \
+		--qc_report {input.qc_report} \
+		--mapping_report {input.mapping_report} \
+		--shovill_report {input.shovill_report} \
+		--unicycler_report {input.unicycler_report} \
+		--onepct_report {input.onepct_report}
 		"""

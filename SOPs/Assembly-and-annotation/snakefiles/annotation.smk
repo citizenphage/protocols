@@ -6,6 +6,55 @@ with open('resources/config.json', 'r') as handle:
 
 samples = pd.read_csv(config['metadata_file'], index_col=0, comment='#')
 
+rule setup_checkv:
+	output:
+		directory("scratch/checkv-db")
+	conda: "../envs/checkv.yml"
+	log: "logs/setup-checkv.log"
+	shell:
+		"""
+		checkv download_database {output} 2>&1 | tee {log}
+		"""
+
+rule run_checkv:
+	input:
+		assembly="output/{sample}/03_selected_contigs/{contig}.fa",
+		db=rules.setup_checkv.output
+	output:
+		quality_summary="scratch/checkv/quality_summary.tsv"
+	conda:
+		"../envs/checkv.yml"
+	threads: 16
+	log: "logs/{sample}/checkv.log"
+	shell:
+		"""
+		checkv end_to_end {input.assembly} \
+		scratch/{wildcards.sample}/{wildcards.contig}/checkv \
+		-t {threads} \
+		-d {input.db}/checkv-db-v* \
+		--remove_tmp 2>&1 | tee {log}
+
+		mv scratch/{wildcards.sample}/{wildcards.contig}/checkv/quality_summary.tsv {output.quality_summary}
+		"""
+
+rule process_checkv_output:
+	input:
+		viruses=rules.run_checkv_on_unicycler.output.viruses,
+		quality_summary=rules.run_checkv_on_unicycler.output.quality_summary
+	output:
+		report="output/{sample}/02_assembly/unicycler/checkv/process-files-report.json",
+		store=directory("output/{sample}/02_assembly/unicycler/checkv/contig-store")
+	shell:
+		"""
+			python scripts/parse_checkv.py \
+			--viruses {input.viruses} \
+			--quality {input.quality_summary} \
+			--output {output.report} \
+			--contig_store {output.store}
+		"""
+
+
+
 
 rule setup_pharokka:
     output:
