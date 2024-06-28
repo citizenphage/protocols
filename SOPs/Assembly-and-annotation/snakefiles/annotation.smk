@@ -6,6 +6,10 @@ with open('resources/config.json', 'r') as handle:
 
 samples = pd.read_csv(config['metadata_file'], index_col=0, comment='#')
 
+def get_title(wildcards):
+	row = samples.loc[wildcards.sample]
+	return f'{row.host_genus} phage {row.given_name if row.given_name else ""} {wildcards.sample}'
+
 rule setup_checkv:
 	output:
 		directory("scratch/checkv-db")
@@ -21,11 +25,11 @@ rule run_checkv:
 		assembly="output/{sample}/03_selected_contigs/{contig}.fa",
 		db=rules.setup_checkv.output
 	output:
-		quality_summary="scratch/checkv/quality_summary.tsv"
+		quality_summary="scratch/{sample}/{contig}/checkv/quality_summary.tsv"
 	conda:
 		"../envs/checkv.yml"
 	threads: 16
-	log: "logs/{sample}/checkv.log"
+	log: "logs/{sample}/{contig}/checkv.log"
 	shell:
 		"""
 		checkv end_to_end {input.assembly} \
@@ -33,25 +37,23 @@ rule run_checkv:
 		-t {threads} \
 		-d {input.db}/checkv-db-v* \
 		--remove_tmp 2>&1 | tee {log}
-
-		mv scratch/{wildcards.sample}/{wildcards.contig}/checkv/quality_summary.tsv {output.quality_summary}
 		"""
 
 rule process_checkv_output:
-	input:
-		viruses=rules.run_checkv_on_unicycler.output.viruses,
-		quality_summary=rules.run_checkv_on_unicycler.output.quality_summary
-	output:
-		report="output/{sample}/02_assembly/unicycler/checkv/process-files-report.json",
-		store=directory("output/{sample}/02_assembly/unicycler/checkv/contig-store")
-	shell:
-		"""
-			python scripts/parse_checkv.py \
-			--viruses {input.viruses} \
-			--quality {input.quality_summary} \
-			--output {output.report} \
-			--contig_store {output.store}
-		"""
+    input:
+        quality_summary="scratch/{sample}/{contig}/checkv/quality_summary.tsv",
+        contigs="output/{sample}/03_selected_contigs/{contig}.fa"
+    output:
+        report="output/{sample}/04_checkv/{contig}/process-files-report.json",
+        viral_contigs="output/{sample}/04_checkv/{contig}/confirmed_virus.fa"
+    shell:
+        """
+            python scripts/parse_checkv.py \
+            --contig {input.contigs} \
+            --quality {input.quality_summary} \
+            --report {output.report} \
+            --output_contig {output.viral_contigs}
+        """
 
 
 
@@ -65,17 +67,16 @@ rule setup_pharokka:
         """
         install_databases.py -o {output} 2>&1 | tee {log}
         """
-def get_title(wildcards):
-	row = samples.loc[wildcards.sample]
-	return f'{row.host_genus} phage {row.given_name if row.given_name else ""} {wildcards.sample}'
+
+
 
 rule annotate_genome:
     input:
-        contigs="scratch/{sample}/checkv/contig-store/{contig}.fa",
+        contigs="output/{sample}/04_checkv/{contig}/confirmed_virus.fa",
         db=rules.setup_pharokka.output
     output:
-        gbk="output/{sample}/03_annotation/{contig}/pharokka.gbk",
-        inphared="output/{sample}/03_annotation/{contig}/top_hits_mash_inphared.tsv"
+        gbk="output/{sample}/05_annotation/{contig}/pharokka.gbk",
+        inphared="output/{sample}/05_annotation/{contig}/top_hits_mash_inphared.tsv"
     conda:
         "../envs/pharokka.yml"
     params:
@@ -87,7 +88,7 @@ rule annotate_genome:
             mkdir -p scratch/{wildcards.sample}/{wildcards.contig}
             pharokka.py \
             -i {input.contigs} \
-            -o scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler \
+            -o scratch/{wildcards.sample}/{wildcards.contig}/pharokka \
             -d {input.db} \
             -t {threads} \
             -l {wildcards.contig} \
@@ -96,8 +97,8 @@ rule annotate_genome:
             --dnaapler \
             --prefix {wildcards.contig} 2>&1 | tee {log}
 
-            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/{wildcards.contig}.gbk {output.gbk}
-            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/{wildcards.contig}_top_hits_mash_inphared.tsv {output.inphared}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/{wildcards.contig}.gbk {output.gbk}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/{wildcards.contig}_top_hits_mash_inphared.tsv {output.inphared}
 
 
         """
@@ -117,33 +118,33 @@ rule run_phold:
         gbk=rules.annotate_genome.output.gbk,
         db=rules.setup_phold.output
     output:
-        plot_png="output/{sample}/03_annotation/{contig}/phold.png",
-        plot_svg="output/{sample}/03_annotation/{contig}/phold.svg",
-        gbk="output/{sample}/03_annotation/{contig}/phold.gbk"
+        plot_png="output/{sample}/05_annotation/{contig}/phold.png",
+        plot_svg="output/{sample}/05_annotation/{contig}/phold.svg",
+        gbk="output/{sample}/05_annotation/{contig}/phold.gbk"
     conda:
         "../envs/phold.yml"
     threads: 16
     log: "logs/{sample}/{contig}/pharokka-phold.log"
     shell:
         """
-            mkdir -p scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold
+            mkdir -p scratch/{wildcards.sample}/{wildcards.contig}/phold
             phold run -i {input.gbk} \
             -p {wildcards.contig} \
-            -o scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold/{wildcards.contig} \
+            -o scratch/{wildcards.sample}/{wildcards.contig}/phold/{wildcards.contig} \
             -t {threads} \
             --database {input.db} \
             --force
 
-            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold/{wildcards.contig}/{wildcards.contig}.gbk {output.gbk}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/phold/{wildcards.contig}/{wildcards.contig}.gbk {output.gbk}
 
             phold plot -i {output.gbk} \
             -p {wildcards.contig} \
-            -o scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold/plots \
+            -o scratch/{wildcards.sample}/{wildcards.contig}/phold/plots \
             -t {wildcards.contig} \
             --force
 
-            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold/plots/{wildcards.contig}.svg {output.plot_svg}
-            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka-unicycler/phold/plots/{wildcards.contig}.png {output.plot_png}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/phold/plots/{wildcards.contig}.svg {output.plot_svg}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/phold/plots/{wildcards.contig}.png {output.plot_png}
 
 
         """
@@ -153,8 +154,8 @@ rule get_nearest_ncbi_hit:
     input:
         rules.annotate_genome.output.inphared
     output:
-        genome="output/{sample}/03_annotation/{contig}/nearest-neighbour.fa",
-        report="output/{sample}/03_annotation/{contig}/nearest-neighbour-report.json"
+        genome="output/{sample}/05_annotation/{contig}/nearest-neighbour.fa",
+        report="output/{sample}/05_annotation/{contig}/nearest-neighbour-report.json"
     shell:
         """
             python scripts/get_closest_hit_from_inphared.py \
@@ -168,7 +169,7 @@ rule extract_fasta_from_genbank:
     input:
         assembly=rules.run_phold.output.gbk
     output:
-        "output/{sample}/03_annotation/{contig}/genome.fa"
+        "output/{sample}/05_annotation/{contig}/genome.fa"
     shell:
         """
         python scripts/extract_fasta_from_genbank.py \
@@ -180,11 +181,11 @@ rule extract_fasta_from_genbank:
 
 rule map_reads_against_assembly:
     input:
-        fwd="output/{sample}/01_reads/host-mapping/unmapped-reads-fwd.fq.gz",
-        rev="output/{sample}/01_reads/host-mapping/unmapped-reads-rev.fq.gz",
+        fwd="output/reads/{sample}/host-mapping/unmapped-reads-fwd.fq.gz",
+        rev="output/reads/{sample}/host-mapping/unmapped-reads-rev.fq.gz",
         assembly=rules.extract_fasta_from_genbank.output
     output:
-        mapped="output/{sample}/03_annotation/{contig}/assembly-mapped-reads.bam"
+        mapped="output/{sample}/06_coverage/{contig}/assembly-mapped-reads.bam"
     conda:
         "../envs/map-reads.yml"
     threads: 16
@@ -213,12 +214,12 @@ rule plot_coverage:
         bam=rules.map_reads_against_assembly.output.mapped,
         genome=rules.extract_fasta_from_genbank.output
     output:
-        json="output/{sample}/03_annotation/{contig}/coverage.json"
+        json="output/{sample}/06_coverage/{contig}/coverage.json"
     shell:
         """
         python scripts/plot_genome_coverage.py \
         --bam {input.bam} \
-        --prefix output/{wildcards.sample}/03_annotation/{wildcards.contig}/coverage \
+        --prefix output/{wildcards.sample}/06_coverage/{wildcards.contig}/coverage \
         --genome {input.genome} \
         --json {output.json}
         """
@@ -226,11 +227,11 @@ rule plot_coverage:
 rule check_for_variants:
     input:
         gbk=rules.run_phold.output.gbk,
-        fwd="output/{sample}/01_reads/host-mapping/unmapped-reads-fwd.fq.gz",
-        rev="output/{sample}/01_reads/host-mapping/unmapped-reads-rev.fq.gz",
+        fwd="output/reads/{sample}/host-mapping/unmapped-reads-fwd.fq.gz",
+        rev="output/reads/{sample}/host-mapping/unmapped-reads-rev.fq.gz",
     output:
-        report="output/{sample}/04_variants/{contig}/snps.html",
-        bam="output/{sample}/04_variants/{contig}/snps.bam"
+        report="output/{sample}/07_variants/{contig}/snps.html",
+        bam="output/{sample}/07_variants/{contig}/snps.bam"
     conda:
         "../envs/snippy.yml"
     threads: 16
