@@ -1,5 +1,9 @@
 {
   "metadata_file" : "resources/2024-06-18-SAP-metadata.csv",
   "read_store_server" : "bt273@login.isca.ex.ac.uk",
-  "data_store": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store"
+  "data_store": "https://f003.backblazeb2.com/file/CitizenPhageLibrary/data-store",
+  "local_data_store": "output",
+  "B2_APPLICATION_KEY_ID": "00380912730ac7c0000000001",
+  "B2_APPLICATION_KEY": "K0033mO7qBehNc/G5s58PRdoO8TnKBA",
+  "bucket_name": "CitizenPhageLibrary"
 }

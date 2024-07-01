@@ -76,7 +76,9 @@ rule annotate_genome:
         db=rules.setup_pharokka.output
     output:
         gbk="output/{sample}/05_annotation/{contig}/pharokka.gbk",
-        inphared="output/{sample}/05_annotation/{contig}/top_hits_mash_inphared.tsv"
+        inphared="output/{sample}/05_annotation/{contig}/top_hits_mash_inphared.tsv",
+        vfdb="output/{sample}/05_annotation/{contig}/top_hits_vfdb.tsv",
+        card="output/{sample}/05_annotation/{contig}/top_hits_card.tsv",
     conda:
         "../envs/pharokka.yml"
     params:
@@ -99,9 +101,12 @@ rule annotate_genome:
 
             cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/{wildcards.contig}.gbk {output.gbk}
             cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/{wildcards.contig}_top_hits_mash_inphared.tsv {output.inphared}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/top_hits_vfdb.tsv {output.vfdb}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/pharokka/top_hits_card.tsv {output.card}
 
 
         """
+
 
 rule setup_phold:
     output:
@@ -147,6 +152,22 @@ rule run_phold:
             cp scratch/{wildcards.sample}/{wildcards.contig}/phold/plots/{wildcards.contig}.png {output.plot_png}
 
 
+        """
+
+rule check_for_genes_of_concern:
+    input:
+        vfdb = "output/{sample}/05_annotation/{contig}/top_hits_vfdb.tsv",
+        card = "output/{sample}/05_annotation/{contig}/top_hits_card.tsv",
+        gbk = "output/{sample}/05_annotation/{contig}/phold.gbk"
+    output:
+        "output/{sample}/05_annotation/{contig}/genes_of_concern.json"
+    shell:
+        """
+            python scripts/process_genes_of_concern.py \
+            --vfdb {input.vfdb} \
+            --card {input.card} \
+            --gbk {input.gbk} \
+            --output {output}
         """
 
 
@@ -230,7 +251,7 @@ rule check_for_variants:
         fwd="output/reads/{sample}/host-mapping/unmapped-reads-fwd.fq.gz",
         rev="output/reads/{sample}/host-mapping/unmapped-reads-rev.fq.gz",
     output:
-        report="output/{sample}/07_variants/{contig}/snps.html",
+        report="output/{sample}/07_variants/{contig}/snps.csv",
         bam="output/{sample}/07_variants/{contig}/snps.bam"
     conda:
         "../envs/snippy.yml"
@@ -243,6 +264,27 @@ rule check_for_variants:
             --R2 {input.rev} \
             --force 
 
-            cp scratch/{wildcards.sample}/{wildcards.contig}/snippy/snps.html {output.report}
+            cp scratch/{wildcards.sample}/{wildcards.contig}/snippy/snps.csv {output.report}
             cp scratch/{wildcards.sample}/{wildcards.contig}/snippy/snps.bam {output.bam}
+        """
+
+rule generate_annotation_report:
+    input:
+        fasta=rules.extract_fasta_from_genbank.output,
+        checkv=rules.process_checkv_output.output.report,
+        coverage=rules.plot_coverage.output.json,
+        genes_of_concern=rules.check_for_genes_of_concern.output,
+        variants=rules.check_for_variants.output.report
+    output:
+        "output/reports/{sample}/{contig}/annotation-report.json"
+    shell:
+        """
+            python scripts/generate_annotation_report.py \
+            --fasta {input.fasta} \
+            --checkv {input.checkv} \
+            --coverage {input.coverage} \
+            --genes_of_concern {input.genes_of_concern} \
+            --sample_name {wildcards.sample} \
+            --variants {input.variants} \
+            --output {output}
         """
