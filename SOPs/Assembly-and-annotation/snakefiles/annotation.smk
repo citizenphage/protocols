@@ -274,7 +274,8 @@ rule generate_annotation_report:
         checkv=rules.process_checkv_output.output.report,
         coverage=rules.plot_coverage.output.json,
         genes_of_concern=rules.check_for_genes_of_concern.output,
-        variants=rules.check_for_variants.output.report
+        variants=rules.check_for_variants.output.report,
+        phylo=rules.get_nearest_ncbi_hit.output.report
     output:
         "output/reports/{sample}/{contig}/annotation-report.json"
     shell:
@@ -286,5 +287,6 @@ rule generate_annotation_report:
             --genes_of_concern {input.genes_of_concern} \
             --sample_name {wildcards.sample} \
             --variants {input.variants} \
+            --phylogeny {input.phylo} \
             --output {output}
         """

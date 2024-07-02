@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument("--sample_name", type=str, required=True)
     parser.add_argument("--variants", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
+    parser.add_argument("--phylogeny", type=str, required=True)
     parser.add_argument("--config", type=str, default='resources/config.json')
 
     # Parse arguments
@@ -91,6 +92,9 @@ def main(args):
     snps = pd.read_csv(args.variants).to_dict('records')
 
     results['variants']['variants'] = snps
+
+    with open(args.phylogeny, 'r') as handle:
+        results['phylogeny'] = json.load(handle)
 
     with open(args.output, 'w') as handle:
         json.dump(results, handle, indent=4)

@@ -11,11 +11,13 @@ def parse_args():
     parser.add_argument("--input", type=str, required=True)
     parser.add_argument("--outfile", type=str, required=True)
     parser.add_argument("--prefix", type=str, required=True)
+    parser.add_argument("--min_length", type=int, default=0)
     parser.add_argument("--report", type=str, required=True)
     parser.add_argument("--assembly_method", type=str, required=True)
     # Parse arguments
     args = parser.parse_args()
     return args
+
 
 def main(args):
     
@@ -24,7 +26,8 @@ def main(args):
     new_names = []
     lengths = []
     with open(args.input) as handle:
-        reads = [x for x in SeqIO.parse(handle, 'fasta')]
+
+        reads = [x for x in SeqIO.parse(handle, 'fasta') if len(x) > args.min_length]
         old_names = [x.id for x in reads]
 
     if len(reads) == 1:

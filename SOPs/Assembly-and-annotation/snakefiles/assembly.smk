@@ -418,7 +418,11 @@ rule generate_assembly_report_json:
 		mapping_report="output/{sample}/01_reads/host-mapping/host_mapping.json",
 		shovill_report="output/{sample}/02_assembly/shovill/shovill-subsampled-contigs-report.json",
 		unicycler_report="output/{sample}/02_assembly/unicycler/shovill-reads/report.json",
-		onepct_report="output/{sample}/02_assembly/unicycler/1pc/report.json"
+		onepct_report="output/{sample}/02_assembly/unicycler/1pc/report.json",
+		qc_archive=rules.archive_qc_data.output,
+		bandage=rules.visualise_subsample_assembly.output.img,
+		bandage2=rules.visualise_unicycler_assembly.output.img
+
 	output:
 		"output/reports/{sample}/assembly-report.json"
 	params:
