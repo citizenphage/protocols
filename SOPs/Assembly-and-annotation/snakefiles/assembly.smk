@@ -51,7 +51,10 @@ rule all:
 		expand("output/{sample}/01_reads/host-mapping/host_mapping.json", sample=samples.index),
 		expand("output/{sample}/02_assembly/unicycler/shovill-reads/{sample}-shovill-bandage.png", sample=samples.index),
 		expand("output/{sample}/02_assembly/unicycler/1pc/{sample}-1pc-bandage.png", sample=samples.index),
-		expand("output/reports/{sample}/assembly-report.json", sample=samples.index)
+		expand("output/reports/{sample}/assembly-report.json", sample=samples.index),
+		expand("output/{sample}/01_reads/orig_reads/stats-processed.json", sample=samples.index),
+		expand("output/{sample}/01_reads/host-mapping/host_mapping-processed.json", sample=samples.index),
+		expand("output/{sample}/02_assembly/unicycler/shovill-reads/report-processed.json", sample=samples.index)
 
 
 
@@ -159,6 +162,24 @@ rule parse_qc_output:
 			
 		"""
 
+rule update_db_reads:
+	input:
+		report=rules.parse_qc_output.output,
+		fwd_qc=rules.fastqc_reads.output.fwd,
+		rev_qc=rules.fastqc_reads.output.rev
+	output:
+		"output/{sample}/01_reads/orig_reads/stats-processed.json"
+	shell:
+		"""
+		python scripts/data/update_db_reads.py \
+		--report {input.report} \
+		--sample {wildcards.sample} \
+		--fwd {input.fwd_qc} \
+		--rev {input.rev_qc} \
+		--output {output}
+		"""
+
+
 rule archive_qc_data:
 	input:
 		fwd_qc=rules.fastqc_reads.output.fwd,
@@ -242,6 +263,22 @@ rule parse_mapped_reads:
 			--mapped_rev {input.mapped_rev} \
 			--unmapped_fwd {input.unmapped_fwd} \
 			--unmapped_rev {input.unmapped_rev} \
+			--output {output}
+		"""
+
+
+rule update_mapped_reads:
+	input:
+		report= rules.parse_mapped_reads.output,
+		bam_file = rules.map_reads_against_host.output.mapped,
+	output:
+		"output/{sample}/01_reads/host-mapping/host_mapping-processed.json"
+	shell:
+		"""
+			python scripts/data/update_db_mapped_reads.py \
+			--report {input.report} \
+			--sample {wildcards.sample} \
+			--bam_file {input.bam_file} \
 			--output {output}
 		"""
 
@@ -409,6 +446,33 @@ rule visualise_unicycler_assembly:
 			
 			mkdir -p output/{wildcards.sample}/03_selected_contigs/
 			
+		"""
+
+
+rule update_db_unicycler_shovill:
+	input:
+		contigs=rules.reassemble_shovill_reads_with_unicycler.output.contigs,
+		graph=rules.reassemble_shovill_reads_with_unicycler.output.graph,
+		graph_img=rules.visualise_unicycler_assembly.output.img
+	output:
+		"output/{sample}/02_assembly/unicycler/shovill-reads/report-processed.json"
+	shell:
+		"""
+			mkdir -p scratch/{wildcards.sample}/unicycler/shovill-reads/
+			pigz -c {input.contigs} > scratch/{wildcards.sample}/unicycler/shovill-reads/contigs.fa.gz
+			
+			python scripts/data/update_db_assembly.py \
+			--contigs scratch/{wildcards.sample}/unicycler/shovill-reads/contigs.fa.gz \
+			--assembler unicycler \
+			--assembler_version "0.5.0" \
+			--command "--min_fasta_length 1000" \
+			--graph {input.graph} \
+			--graph_img {input.graph_img} \
+			--subsampled_coverage shovill-reads \
+			--sample {wildcards.sample} \
+			--output {output}
+			
+			rm scratch/{wildcards.sample}/unicycler/shovill-reads/contigs.fa.gz
 		"""
 
 

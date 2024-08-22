@@ -1,3 +1,5 @@
 
 .DS_Store
 SOPs/setup/google-cloud-credentials.json
+SOPs/Assembly-and-annotation/.env
+
