@@ -1,6 +1,6 @@
 # Setting up your Citizen Phage Environment
 
-This pipeline is to be run in four stages:
+This pipeline is to be run in three stages:
 
 ## 1. Assemble your genome
 This can be done using a command similar to 
